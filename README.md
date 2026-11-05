@@ -7,7 +7,7 @@ Ihr entwickelt **dieselbe Android-App im Unterricht und zuhause weiter**. Progra
 Die Kursleitung gibt euch die GitHub-Adresse des **Studierendenrepositorys**. In Android Studio **Get from VCS / Clone Repository** wählen und diese Adresse einfügen. Alternativ im Terminal klonen; `<KURS-REPOSITORY-URL>` vollständig durch die mitgeteilte Adresse ersetzen:
 
 ```text
-git clone <KURS-REPOSITORY-URL> Abfahrtsmonitor
+git clone https://github.com/robinjung2004/android-abfahrtsmonitor.git
 ```
 
 In Android Studio den geklonten Ordner **Abfahrtsmonitor** öffnen. Im Studierendenrepository liegen `settings.gradle.kts`, `gradlew.bat` und `app/` direkt darin. Falls ihr stattdessen das Lehrpaket oder Starter-ZIP verwendet, öffnet den enthaltenen Starterordner mit diesen Dateien.
