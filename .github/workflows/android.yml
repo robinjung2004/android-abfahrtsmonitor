@@ -30,6 +30,9 @@ jobs:
           java-version: '17'
       - name: Android SDK
         uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3
+        with:
+          # Das alte Paket "tools" wird von Google nicht mehr angeboten.
+          packages: platform-tools
       - name: Projekt-SDK installieren
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
       - name: App bauen und alle Tests kompilieren

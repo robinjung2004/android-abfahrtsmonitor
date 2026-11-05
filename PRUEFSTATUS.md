@@ -31,7 +31,8 @@ Das Lehrteam hat die vollständige Referenz mit denselben Testdateien geprüft:
 
 Die vollständige Referenz ist nicht Bestandteil des Studierendenrepositorys.
 Ein grüner GitHub-Build prüft zunächst die Kompilierbarkeit, nicht die gelösten Aufgaben.
-GitHub Actions selbst wurde noch nicht auf einem Remote ausgeführt.
+Die aktuellen GitHub-Läufe stehen im Repository unter Actions; dieses Protokoll
+dokumentiert die oben genannten lokalen Prüfungen.
 
 ## Zusätzlich selbst prüfen
 
