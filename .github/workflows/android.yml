@@ -25,8 +25,10 @@ jobs:
           packages: platform-tools
       - name: Projekt-SDK installieren
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
-      - name: App bauen und Unterrichtstests kompilieren
-        run: ./gradlew --no-daemon assembleDebug compileDebugUnitTestKotlin
-      - name: Eigene Präsenzlösung prüfen
+      - name: App und Timer-Gerätetests bauen
+        run: ./gradlew --no-daemon assembleDebug assembleDebugAndroidTest
+      - name: Bereitgestellte Präsenzlösung prüfen
+        run: ./gradlew --no-daemon testDebugUnitTest --tests '*Unterricht*'
+      - name: Eigene Timerlösung prüfen
         if: github.event_name == 'workflow_dispatch'
         run: ./gradlew --no-daemon testDebugUnitTest

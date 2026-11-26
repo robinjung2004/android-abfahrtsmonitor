@@ -23,9 +23,8 @@ class DepartureCache(context: Context, private val cpu: CoroutineDispatcher = Di
         withContext(cpu) { preferences[key]?.let(::decode) ?: Board() }
     }
     override suspend fun save(board: Board) {
-        // TODO-BEGIN U2 | JSON außerhalb Main berechnen; dann mit DataStore dauerhaft speichern.
-        // Eigene Implementierung hier. Noch keine Speicherung.
-        // TODO-END U2
+        val json = withContext(cpu) { encode(board) }
+        store.edit { it[key] = json }
     }
     private fun encode(board: Board): String = JSONObject().apply {
         put("updatedAt", board.updatedAt); put("advisory", board.advisory)
