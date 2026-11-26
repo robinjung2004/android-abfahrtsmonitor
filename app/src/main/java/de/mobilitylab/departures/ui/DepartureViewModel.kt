@@ -22,7 +22,7 @@ class DepartureViewModel(private val repository: DepartureRepository) : ViewMode
         // 2. Einen neuen Job im viewModelScope starten und in refreshJob merken.
         // 3. Im Job: LoadState mit loading=true setzen, dann repository.refresh(failAdvisory) aufrufen.
         // 4. Erfolg und IOException mit loading=false melden; CancellationException weitergeben.
-        // Dieses Gerüst zeigt absichtlich nur den Ausgangszustand. Schritte gemeinsam aufbauen.
+        // Dieses Gerüst zeigt absichtlich nur den Ausgangszustand. Ergänze die Schritte der Reihe nach.
         mutableLoad.value = LoadState(message = "TODO U3: Ladeauftrag ergänzen")
         // TODO-END U3
     }

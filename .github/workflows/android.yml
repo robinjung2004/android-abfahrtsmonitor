@@ -4,16 +4,6 @@ on:
   push:
   pull_request:
   workflow_dispatch:
-    inputs:
-      pruefung:
-        description: Welche bereits bearbeitete Phase soll zusätzlich geprüft werden?
-        type: choice
-        default: nur-build
-        options:
-          - nur-build
-          - unterricht
-          - kernhausaufgabe
-
 permissions:
   contents: read
 
@@ -35,15 +25,8 @@ jobs:
           packages: platform-tools
       - name: Projekt-SDK installieren
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
-      - name: App bauen und alle Tests kompilieren
-        # Offene U-/H-Aufgaben sollen den Build nicht verhindern. Dieser Schritt
-        # bestätigt die Kompilierbarkeit, nicht die fachliche Aufgabenerfüllung.
-        run: |
-          chmod +x ./gradlew
-          ./gradlew --no-daemon assembleDebug assembleDebugAndroidTest compileDebugUnitTestKotlin
-      - name: Präsenzaufgaben prüfen
-        if: inputs.pruefung == 'unterricht'
-        run: ./gradlew --no-daemon testDebugUnitTest --tests '*Unterricht*'
-      - name: Kernhausaufgabe und Präsenzgrundlage prüfen
-        if: inputs.pruefung == 'kernhausaufgabe'
+      - name: App bauen und Unterrichtstests kompilieren
+        run: ./gradlew --no-daemon assembleDebug compileDebugUnitTestKotlin
+      - name: Eigene Präsenzlösung prüfen
+        if: github.event_name == 'workflow_dispatch'
         run: ./gradlew --no-daemon testDebugUnitTest
