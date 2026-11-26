@@ -17,18 +17,21 @@ class DepartureViewModel(private val repository: DepartureRepository) : ViewMode
     private var refreshJob: Job? = null
 
     fun reload(failAdvisory: Boolean) {
-        // TODO-BEGIN U3 | Alten Ladejob abbrechen; neuen im viewModelScope starten; Status und Fehler behandeln.
-        // 1. Den bisher gemerkten refreshJob abbrechen (falls vorhanden).
-        // 2. Einen neuen Job im viewModelScope starten und in refreshJob merken.
-        // 3. Im Job: LoadState mit loading=true setzen, dann repository.refresh(failAdvisory) aufrufen.
-        // 4. Erfolg und IOException mit loading=false melden; CancellationException weitergeben.
-        // Dieses Gerüst zeigt absichtlich nur den Ausgangszustand. Ergänze die Schritte der Reihe nach.
-        mutableLoad.value = LoadState(message = "TODO U3: Ladeauftrag ergänzen")
-        // TODO-END U3
+        refreshJob?.cancel()
+        refreshJob = viewModelScope.launch {
+            mutableLoad.value = LoadState(true, "Abfahrten und Hinweise werden geladen …")
+            try {
+                repository.refresh(failAdvisory)
+                mutableLoad.value = LoadState(message = "Daten geladen und gespeichert")
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: IOException) {
+                mutableLoad.value = LoadState(message = "Laden fehlgeschlagen. Erneut versuchen.")
+            }
+        }
     }
     fun cancelLoad() {
-        // TODO-BEGIN U4 | Nur refreshJob stoppen, nicht viewModelScope; erneutes Laden ermöglichen.
-        // Eigene Implementierung hier. Noch kein Abbruch.
-        // TODO-END U4
+        refreshJob?.cancel()
+        mutableLoad.value = LoadState(message = "Laden abgebrochen")
     }
 }

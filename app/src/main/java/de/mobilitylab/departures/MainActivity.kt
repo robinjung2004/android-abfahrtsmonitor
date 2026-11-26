@@ -1,9 +1,14 @@
 package de.mobilitylab.departures
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -14,16 +19,34 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import de.mobilitylab.departures.timer.*
 import de.mobilitylab.departures.ui.DepartureViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
+    private var pendingTimer: Pair<Long, String>? = null
+    private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) pendingTimer?.let { startTimer(it.first, it.second) }
+        else android.widget.Toast.makeText(this, "Für den Lehrtimer bitte Benachrichtigungen erlauben.", android.widget.Toast.LENGTH_LONG).show()
+        pendingTimer = null
+    }
+    private fun requestTimer(seconds: Long, label: String) {
+        if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            pendingTimer = seconds to label
+            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else startTimer(seconds, label)
+    }
+    private fun startTimer(seconds: Long, label: String) {
+        ContextCompat.startForegroundService(this, Intent(this, DepartureTimerService::class.java)
+            .setAction(DepartureTimerService.START).putExtra("seconds", seconds).putExtra("label", label))
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -35,6 +58,7 @@ class MainActivity : ComponentActivity() {
                 })
                 val board by vm.board.collectAsStateWithLifecycle()
                 val load by vm.load.collectAsStateWithLifecycle()
+                val timer by TimerStatus.state.collectAsStateWithLifecycle()
                 var failAdvisory by rememberSaveable { mutableStateOf(false) }
                 val time = remember { SimpleDateFormat("HH:mm:ss", Locale.GERMANY) }
                 Surface(Modifier.fillMaxSize(), color = Color(0xFFF2F5FB)) {
@@ -57,7 +81,20 @@ class MainActivity : ComponentActivity() {
                         board.departures.forEach { departure ->
                             LabCard("${departure.line}  →  ${departure.destination}") {
                                 Text("Plan ${time.format(Date(departure.epochMillis)).take(5)} · +${departure.delayMinutes} min · Gleis ${departure.platform}")
+                                Button(onClick = {
+                                    val seconds = ((departure.epochMillis + departure.delayMinutes * 60_000 - System.currentTimeMillis()) / 1000).coerceIn(1, 3600)
+                                    requestTimer(seconds, departure.line + " nach " + departure.destination)
+                                }) { Text("Abfahrtstimer · H1–H3 starten") }
                             }
+                        }
+                        LabCard("Abfahrtstimer · Hausaufgabe H1–H3") {
+                            Text(if (timer.active) "${timer.remaining / 60}:${(timer.remaining % 60).toString().padStart(2, '0')}" else "—:—", style = MaterialTheme.typography.displaySmall)
+                            Text(timer.label)
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Button(onClick = { requestTimer(30, "30-Sekunden-Test") }) { Text("30 s testen") }
+                                OutlinedButton(onClick = { stopService(Intent(this@MainActivity, DepartureTimerService::class.java)) }, enabled = timer.active) { Text("Stoppen") }
+                            }
+                            Text("Der Timer verwendet die monotone Uhr des Geräts. Force-stop beendet den Service.", style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }
